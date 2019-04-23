@@ -1,12 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import UploadFAB from '../../components/FAB/UploadFAB';
 import LectureGogglesLogo from '../../components/logo/logo';
 import GenericButton from '../../components/button/button';
 import GridBody from '../../components/gridBody';
 import AuthContext from '../../contexts/AuthContext';
+import useWindowWidth from '../../hooks/useWindowWidth';
 
 const LogoStyle = styled.div`
   grid-column: 2;
@@ -46,6 +48,7 @@ const LandingPage = () => {
   const { signedInAs, userData } = useContext(AuthContext);
   const [isAdmin, setAdmin] = useState(undefined);
   const [reports, setReports] = useState([]);
+  const width = useWindowWidth();
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (userData.is_staff) {
@@ -57,17 +60,19 @@ const LandingPage = () => {
   }, [userData]);
   return (
     <GridBody data-testid="landing-page">
-      <div style={{ gridColumn: 1, gridRow: 1 }} />
+      <div style={{ gridColumn: 2, gridRow: 1 }} />
       <LogoStyle>
         <LectureGogglesLogo width={200} height={200} />
       </LogoStyle>
       <WelcomeStyle>
         <h1>Welcome{signedInAs !== '' && ` ${signedInAs}`}!</h1>
         {signedInAs === '' && (
-          <p>
-            Lecture Goggles is a free, open-source, educational resource repository to help students gain a better
-            understanding of school subjects.
-          </p>
+          <>
+            <p>
+              Lecture Goggles is a free, open-source, educational resource repository to help students gain a better
+              understanding of school subjects.
+            </p>
+          </>
         )}
       </WelcomeStyle>
       {signedInAs === '' ? (
@@ -84,7 +89,30 @@ const LandingPage = () => {
           </AccountCreateButtonStyle>
         </>
       ) : (
-        <UploadFAB />
+        <div style={{ gridColumn: 2, display: 'flex', flexDirection: width > 800 ? 'row' : 'column' }}>
+          <a href="/subjects">
+            <GenericButton style={{ marginBottom: '6px' }} width="250px">
+              <FontAwesomeIcon size="3x" fixedWidth icon="book-open" />
+              <br />
+              Subjects
+            </GenericButton>
+          </a>
+          <a href="/topics">
+            <GenericButton style={{ marginBottom: '6px' }} width="250px">
+              <FontAwesomeIcon size="3x" fixedWidth icon="scroll" />
+              <br />
+              Topics
+            </GenericButton>
+          </a>
+          <a href="/resources">
+            <GenericButton style={{ marginBottom: '6px' }} width="250px">
+              <FontAwesomeIcon size="3x" fixedWidth icon="link" />
+              <br />
+              Resources
+            </GenericButton>
+          </a>
+          <UploadFAB />
+        </div>
       )}
       {isAdmin && (
         <div
@@ -92,7 +120,7 @@ const LandingPage = () => {
             gridColumn: 2,
             width: '100%',
             backgroundColor: '#efefef',
-            textAlign: 'center',
+            textAlign: 'left',
             minHeight: '56px'
           }}
         >
@@ -100,6 +128,7 @@ const LandingPage = () => {
           <h3>Post Reports</h3>
           {reports.map(report => (
             <div style={{ border: '1px solid black', margin: '5px', textAlign: 'center' }} key={report.id}>
+              <p>Report Id: {report.id}</p>
               <p>Author Id: {report.author_id}</p>
               <p>Description: {report.description}</p>
               <p>
@@ -107,7 +136,6 @@ const LandingPage = () => {
               </p>
               <GenericButton text="MARK AS RESOLVED" width="250px" height="56px" />
               <br />
-              {JSON.stringify(report)}
             </div>
           ))}
         </div>

@@ -9,6 +9,8 @@ import GenericButton from '../../components/button/button';
 import GridBody from '../../components/gridBody';
 import AuthContext from '../../contexts/AuthContext';
 import useWindowWidth from '../../hooks/useWindowWidth';
+import SubscribedSubject from '../../components/subscribedSubject/subscribedSubject';
+import SubscribedTopic from '../../components/subscribedTopic/subscribedTopic';
 
 const LogoStyle = styled.div`
   grid-column: 2;
@@ -44,20 +46,35 @@ const AccountCreateButtonStyle = styled(SignInButtonStyle)`
   grid-row: 5;
 `;
 
+const urlToUse = process.env.NODE_ENV === 'development' ? '' : 'http://api.lecturegoggles.io';
+
 const LandingPage = () => {
   const { signedInAs, userData } = useContext(AuthContext);
   const [isAdmin, setAdmin] = useState(undefined);
   const [reports, setReports] = useState([]);
+  const [subscribedSubjectIds, setSubscribedSubjectIds] = useState([]);
+  const [subscribedTopicIds, setSubscribedTopicIds] = useState([]);
   const width = useWindowWidth();
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (userData.is_staff) {
       axios
-        .get('/v1/report/getReports', { headers: { Authorization: `Bearer ${token}` } })
+        .get(`${urlToUse}/v1/report/getReports/`, { headers: { Authorization: `Bearer ${token}` } })
         .then(response => setReports(response.data.reports[0]));
     }
     setAdmin(userData.is_staff);
   }, [userData]);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (signedInAs !== '') {
+      axios
+        .get(`${urlToUse}/v1/users/getMySubjectSubscriptions`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(({ data }) => setSubscribedSubjectIds(data));
+      axios
+        .get(`${urlToUse}/v1/users/getMyTopicSubscriptions/`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(response => setSubscribedTopicIds(response.data));
+    }
+  }, [signedInAs]);
   return (
     <GridBody data-testid="landing-page">
       <div style={{ gridColumn: 2, gridRow: 1 }} />
@@ -112,6 +129,44 @@ const LandingPage = () => {
             </GenericButton>
           </a>
           <UploadFAB />
+        </div>
+      )}
+      {signedInAs !== '' && (
+        <div
+          style={{
+            marginTop: '36px',
+            gridColumn: 2,
+            width: '100%',
+            textAlign: 'center',
+            border: '1px solid #e3e3e3',
+            boxShadow: '4px 8px 10px 0px rgba(0, 0, 0, 0.2)',
+            minHeight: '56px',
+            color: '#0074d9',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <h1>Subscribed Subjects</h1>
+          {subscribedSubjectIds.length !== 0 &&
+            subscribedSubjectIds.map(subject => <SubscribedSubject key={subject.id} subject={subject} />)}
+        </div>
+      )}
+      {signedInAs !== '' && (
+        <div
+          style={{
+            marginTop: '36px',
+            gridColumn: 2,
+            width: '100%',
+            textAlign: 'center',
+            border: '1px solid #e3e3e3',
+            boxShadow: '4px 8px 10px 0px rgba(0, 0, 0, 0.2)',
+            minHeight: '56px',
+            color: '#0074d9'
+          }}
+        >
+          <h1>Subscribed Topics</h1>
+          {subscribedTopicIds.length !== 0 &&
+            subscribedTopicIds.map(topic => <SubscribedTopic key={topic.id} topic={topic} />)}
         </div>
       )}
       {isAdmin && (

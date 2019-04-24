@@ -27,7 +27,6 @@ const SubscribedTopic = ({ topic }) => {
   if (topicState === null) {
     return <></>;
   }
-  console.log(topicState);
   return (
     <Container>
       <div style={{ marginLeft: '10px', flexGrow: 2 }}>
